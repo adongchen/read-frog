@@ -1,6 +1,6 @@
 import type { SubtitlesFragment } from "../../../types"
 import type { YoutubeTimedText } from "../types"
-import { SENTENCE_END_PATTERN } from "@/utils/constants/subtitles"
+import { SENTENCE_TERMINATOR_PATTERN } from "@/utils/constants/subtitles"
 import { getMaxLength, getTextLength, isCJKLanguage } from "@/utils/subtitles/utils"
 
 const ESTIMATED_WORD_DURATION_MS = 200
@@ -112,11 +112,11 @@ export function parseScrollingAsrSubtitles(
       currentText += text
       lastSegEnd = segStart + ESTIMATED_WORD_DURATION_MS
 
-      const isSentenceEnd = SENTENCE_END_PATTERN.test(text.trim())
+      const isSentenceEnd = SENTENCE_TERMINATOR_PATTERN.test(text.trim())
       const textLength = getTextLength(currentText, isCJK)
 
-      // Mark pending split at sentence boundaries or length limit
-      if (isSentenceEnd || textLength >= maxLength) {
+      // Mark pending split at sentence boundaries (or CJK fallback for punctuation-less lyrics)
+      if (isSentenceEnd || (isCJK && textLength >= maxLength)) {
         pendingSplit = true
       }
     }

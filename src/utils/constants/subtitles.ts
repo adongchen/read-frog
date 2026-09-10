@@ -9,6 +9,7 @@ export const PAUSE_TIMEOUT_MS = 1_000
 export const MAX_WORDS = 15
 export const MAX_CHARS_CJK = 30
 export const SENTENCE_END_PATTERN = /[,.。?？！!；;…؟۔\n]$/
+export const SENTENCE_TERMINATOR_PATTERN = /[.。?？！!；;…؟۔]['"”’）)]?$/
 
 // On-demand translation constants
 export const TRANSLATION_BATCH_SIZE = 5
