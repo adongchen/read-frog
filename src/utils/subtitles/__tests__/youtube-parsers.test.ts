@@ -635,6 +635,26 @@ describe("youTube Subtitle Parsers", () => {
       expect(result.length).toBeGreaterThan(1)
       expect(result[0]!.text.length).toBeLessThanOrEqual(30)
     })
+
+    it("should attach word-level timestamps to parsed fragments", () => {
+      const events: YoutubeTimedText[] = [
+        {
+          tStartMs: 1000,
+          dDurationMs: 2000,
+          wWinId: 1,
+          segs: [{ utf8: "Hello" }, { utf8: " world.", tOffsetMs: 500 }],
+        },
+        { tStartMs: 3000, wWinId: 1, aAppend: 1, segs: [{ utf8: "\n" }] },
+      ]
+      const result = parseScrollingAsrSubtitles(events, "en")
+
+      expect(result).toHaveLength(1)
+      expect(result[0]!.words).toBeDefined()
+      expect(result[0]!.words).toEqual([
+        { text: "Hello", start: 1000 },
+        { text: "world.", start: 1500 },
+      ])
+    })
   })
 
   describe("animated Parser", () => {
@@ -898,6 +918,61 @@ describe("youTube Subtitle Parsers", () => {
     it("should return empty array for empty input", () => {
       const result = optimizeSubtitles([], "en")
       expect(result).toEqual([])
+    })
+
+    it("should use word-level timestamps to precisely split long sentences with 0ms error", () => {
+      // Long sentence of 23 words. Uneven pause: speaker paused before "and then" at 34239ms.
+      // Proportional ratio would estimate ~34700ms (nearly 500ms drift).
+      // With words table, splitTime must be exactly 34239ms!
+      const words = [
+        { text: "The", start: 30320 },
+        { text: "best", start: 30480 },
+        { text: "way", start: 30640 },
+        { text: "to", start: 30720 },
+        { text: "navigate", start: 30880 },
+        { text: "this", start: 31279 },
+        { text: "is", start: 31519 },
+        { text: "by", start: 31679 },
+        { text: "going", start: 31920 },
+        { text: "to", start: 32160 },
+        { text: "the", start: 32320 },
+        { text: "main", start: 32559 },
+        { text: "page/skills", start: 32800 },
+        { text: "and", start: 34239 }, // <-- uneven speech pause here!
+        { text: "then", start: 34480 },
+        { text: "looking", start: 34709 },
+        { text: "at", start: 35030 },
+        { text: "the", start: 35430 },
+        { text: "kind", start: 35670 },
+        { text: "of", start: 35830 },
+        { text: "groupings", start: 35990 },
+        { text: "that", start: 36389 },
+        { text: "we've", start: 36640 },
+        { text: "got", start: 36800 },
+        { text: "here.", start: 36960 },
+      ]
+
+      const fragment = {
+        text: "The best way to navigate this is by going to the main page/skills and then looking at the kind of groupings that we've got here.",
+        start: 30320,
+        end: 37960,
+        words,
+      }
+
+      const result = optimizeSubtitles([fragment], "en")
+
+      expect(result).toHaveLength(2)
+      expect(result[0]!.text).toBe(
+        "The best way to navigate this is by going to the main page/skills",
+      )
+      expect(result[1]!.text).toBe("and then looking at the kind of groupings that we've got here.")
+      // Exactly matches the spoken timestamp of "and" (34239ms)
+      expect(result[0]!.end).toBe(34239)
+      expect(result[1]!.start).toBe(34239)
+
+      // Words array is properly sliced
+      expect(result[0]!.words).toHaveLength(13)
+      expect(result[1]!.words).toHaveLength(12)
     })
   })
 })

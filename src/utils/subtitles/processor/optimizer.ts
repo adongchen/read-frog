@@ -1,4 +1,4 @@
-import type { SubtitlesFragment } from "../types"
+import type { SubtitlesFragment, SubtitleWord } from "../types"
 import { PAUSE_TIMEOUT_MS, SENTENCE_TERMINATOR_PATTERN } from "@/utils/constants/subtitles"
 import { getTextLength, isCJKLanguage } from "@/utils/subtitles/utils"
 
@@ -136,11 +136,13 @@ export function buildMacroSentences(
       .map((f) => cleanText(f.text))
       .join(separator)
       .trim()
+    const allWords = buffer.flatMap((f) => f.words || [])
     if (text) {
       result.push({
         text,
         start: buffer[0]!.start,
         end: buffer.at(-1)!.end,
+        ...(allWords.length > 0 ? { words: allWords } : {}),
       })
     }
     buffer = []
@@ -195,10 +197,14 @@ export function mergeShortSentences(
         break
       }
 
+      const mergedWords =
+        current.words || next.words ? [...(current.words || []), ...(next.words || [])] : undefined
+
       current = {
         ...current,
         text: `${current.text}${separator}${next.text}`.trim(),
         end: next.end,
+        ...(mergedWords && mergedWords.length > 0 ? { words: mergedWords } : {}),
       }
       currentLength = combinedLength
       i++
@@ -278,6 +284,61 @@ function findSplitCandidates(text: string): SplitCandidate[] {
   return candidates
 }
 
+function findSplitWordTiming(
+  words: SubtitleWord[] | undefined,
+  fullText: string,
+  splitCharIndex: number,
+  defaultSplitTime: number,
+  sentenceStart: number,
+  sentenceEnd: number,
+): { splitTime: number; leftWords?: SubtitleWord[]; rightWords?: SubtitleWord[] } {
+  if (!words || words.length === 0) {
+    return { splitTime: defaultSplitTime }
+  }
+
+  const leftText = fullText.slice(0, splitCharIndex).trim()
+  const rightText = fullText.slice(splitCharIndex).trim()
+  const leftTokens = leftText.split(WHITESPACE_PATTERN).filter(Boolean)
+  const targetIdx = leftTokens.length
+
+  const clean = (w: string) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").toLowerCase()
+  const rightFirstToken = clean(rightText.split(WHITESPACE_PATTERN)[0] || "")
+
+  let matchedIdx = -1
+
+  // Look around targetIdx in [-2, +2] window for token match
+  const searchOffsets = [0, 1, -1, 2, -2]
+  for (const offset of searchOffsets) {
+    const idx = targetIdx + offset
+    if (idx >= 0 && idx < words.length) {
+      if (rightFirstToken && clean(words[idx]!.text) === rightFirstToken) {
+        matchedIdx = idx
+        break
+      }
+    }
+  }
+
+  // Fallback to clamped targetIdx if no exact token match
+  if (matchedIdx === -1) {
+    matchedIdx = Math.max(1, Math.min(targetIdx, words.length - 1))
+  }
+
+  const wordStart = words[matchedIdx]?.start
+  if (wordStart !== undefined && wordStart > sentenceStart && wordStart < sentenceEnd) {
+    return {
+      splitTime: wordStart,
+      leftWords: words.slice(0, matchedIdx),
+      rightWords: words.slice(matchedIdx),
+    }
+  }
+
+  return {
+    splitTime: defaultSplitTime,
+    leftWords: words.slice(0, matchedIdx),
+    rightWords: words.slice(matchedIdx),
+  }
+}
+
 /**
  * Stage 3: Split long sentences exceeding max bound using multi-tier strategy
  */
@@ -294,10 +355,34 @@ export function splitLongSentence(
       const leftText = sentence.text.slice(0, commaIdx).trim()
       const rightText = sentence.text.slice(commaIdx + 1).trim()
       const ratio = leftText.length / sentence.text.length
-      const splitTime = Math.round(sentence.start + (sentence.end - sentence.start) * ratio)
+      const defaultSplitTime = Math.round(sentence.start + (sentence.end - sentence.start) * ratio)
+      const { splitTime, leftWords, rightWords } = findSplitWordTiming(
+        sentence.words,
+        sentence.text,
+        commaIdx + 1,
+        defaultSplitTime,
+        sentence.start,
+        sentence.end,
+      )
       return [
-        ...splitLongSentence({ text: leftText, start: sentence.start, end: splitTime }, isCJK),
-        ...splitLongSentence({ text: rightText, start: splitTime, end: sentence.end }, isCJK),
+        ...splitLongSentence(
+          {
+            text: leftText,
+            start: sentence.start,
+            end: splitTime,
+            ...(leftWords && leftWords.length > 0 ? { words: leftWords } : {}),
+          },
+          isCJK,
+        ),
+        ...splitLongSentence(
+          {
+            text: rightText,
+            start: splitTime,
+            end: sentence.end,
+            ...(rightWords && rightWords.length > 0 ? { words: rightWords } : {}),
+          },
+          isCJK,
+        ),
       ]
     }
     return [sentence]
@@ -358,11 +443,35 @@ export function splitLongSentence(
   const rightText = sentence.text.slice(bestCandidate.splitCharIndex).trim()
 
   const ratio = leftText.length / (leftText.length + rightText.length)
-  const splitTime = Math.round(sentence.start + (sentence.end - sentence.start) * ratio)
+  const defaultSplitTime = Math.round(sentence.start + (sentence.end - sentence.start) * ratio)
+  const { splitTime, leftWords, rightWords } = findSplitWordTiming(
+    sentence.words,
+    sentence.text,
+    bestCandidate.splitCharIndex,
+    defaultSplitTime,
+    sentence.start,
+    sentence.end,
+  )
 
   return [
-    ...splitLongSentence({ text: leftText, start: sentence.start, end: splitTime }, isCJK),
-    ...splitLongSentence({ text: rightText, start: splitTime, end: sentence.end }, isCJK),
+    ...splitLongSentence(
+      {
+        text: leftText,
+        start: sentence.start,
+        end: splitTime,
+        ...(leftWords && leftWords.length > 0 ? { words: leftWords } : {}),
+      },
+      isCJK,
+    ),
+    ...splitLongSentence(
+      {
+        text: rightText,
+        start: splitTime,
+        end: sentence.end,
+        ...(rightWords && rightWords.length > 0 ? { words: rightWords } : {}),
+      },
+      isCJK,
+    ),
   ]
 }
 

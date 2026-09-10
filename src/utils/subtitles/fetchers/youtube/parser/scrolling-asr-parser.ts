@@ -1,4 +1,4 @@
-import type { SubtitlesFragment } from "../../../types"
+import type { SubtitlesFragment, SubtitleWord } from "../../../types"
 import type { YoutubeTimedText } from "../types"
 import { SENTENCE_TERMINATOR_PATTERN } from "@/utils/constants/subtitles"
 import { getMaxLength, getTextLength, isCJKLanguage } from "@/utils/subtitles/utils"
@@ -23,10 +23,19 @@ function flushPendingFragment(
   currentText: string,
   currentStart: number,
   lastSegEnd: number,
+  currentWords?: SubtitleWord[],
 ): boolean {
   const trimmed = currentText.trim()
   if (trimmed && !isSpecialTag(trimmed)) {
-    pushFragment(result, { text: trimmed, start: currentStart, end: lastSegEnd })
+    const fragment: SubtitlesFragment = {
+      text: trimmed,
+      start: currentStart,
+      end: lastSegEnd,
+    }
+    if (currentWords && currentWords.length > 0) {
+      fragment.words = [...currentWords]
+    }
+    pushFragment(result, fragment)
     return true
   }
   return false
@@ -37,7 +46,7 @@ function flushPendingFragment(
  * 1. Accumulate text across events until separator
  * 2. Use separator events to determine actual end time and trigger output
  * 3. Mark pending split at sentence boundaries, output when separator arrives
- * 4. Filter special tags
+ * 4. Filter special tags and preserve word-level timestamps
  */
 export function parseScrollingAsrSubtitles(
   events: YoutubeTimedText[],
@@ -54,6 +63,7 @@ export function parseScrollingAsrSubtitles(
   let lastSegEnd = 0
   let isFirstSeg = true
   let pendingSplit = false
+  let currentWords: SubtitleWord[] = []
 
   for (const event of events) {
     // Separator: update end time and output if pending split
@@ -62,8 +72,9 @@ export function parseScrollingAsrSubtitles(
         lastSegEnd = event.tStartMs + (event.dDurationMs || 0)
 
         if (pendingSplit) {
-          flushPendingFragment(result, currentText, currentStart, lastSegEnd)
+          flushPendingFragment(result, currentText, currentStart, lastSegEnd, currentWords)
           currentText = ""
+          currentWords = []
           isFirstSeg = true
           pendingSplit = false
         }
@@ -75,8 +86,9 @@ export function parseScrollingAsrSubtitles(
 
     // If pending split and starting new event, output current fragment first
     if (pendingSplit && currentText) {
-      flushPendingFragment(result, currentText, currentStart, lastSegEnd)
+      flushPendingFragment(result, currentText, currentStart, lastSegEnd, currentWords)
       currentText = ""
+      currentWords = []
       isFirstSeg = true
       pendingSplit = false
     }
@@ -90,8 +102,9 @@ export function parseScrollingAsrSubtitles(
 
       // If pending split and this is a new seg, output current fragment first
       if (pendingSplit && currentText) {
-        flushPendingFragment(result, currentText, currentStart, lastSegEnd)
+        flushPendingFragment(result, currentText, currentStart, lastSegEnd, currentWords)
         currentText = ""
+        currentWords = []
         isFirstSeg = true
         pendingSplit = false
       }
@@ -112,6 +125,22 @@ export function parseScrollingAsrSubtitles(
       currentText += text
       lastSegEnd = segStart + ESTIMATED_WORD_DURATION_MS
 
+      // Record word timestamp
+      const trimmedWord = text.trim()
+      if (trimmedWord && !isSpecialTag(trimmedWord)) {
+        const parts = trimmedWord.split(/\s+/)
+        if (parts.length === 1) {
+          currentWords.push({ text: trimmedWord, start: segStart })
+        } else {
+          for (let p = 0; p < parts.length; p++) {
+            currentWords.push({
+              text: parts[p]!,
+              start: segStart + p * ESTIMATED_WORD_DURATION_MS,
+            })
+          }
+        }
+      }
+
       const isSentenceEnd = SENTENCE_TERMINATOR_PATTERN.test(text.trim())
       const textLength = getTextLength(currentText, isCJK)
 
@@ -123,7 +152,7 @@ export function parseScrollingAsrSubtitles(
   }
 
   // Handle remaining text after all events
-  flushPendingFragment(result, currentText, currentStart, lastSegEnd)
+  flushPendingFragment(result, currentText, currentStart, lastSegEnd, currentWords)
 
   return result
 }

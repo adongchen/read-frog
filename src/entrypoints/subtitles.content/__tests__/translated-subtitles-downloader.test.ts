@@ -455,7 +455,16 @@ describe("translatedSubtitlesDownloader", () => {
       expect.objectContaining({
         subtitles: [
           { text: "zh:Hello.", start: 0, end: 500 },
-          { text: `zh:${questionText}`, start: 500, end: 3420 },
+          {
+            text: "zh:I was wondering whether you have tested scaling laws",
+            start: 500,
+            end: 1533,
+          },
+          {
+            text: "zh:when source text is transformed into image inputs across many different controlled experiments.",
+            start: 1533,
+            end: 3420,
+          },
         ],
       }),
     )
@@ -505,7 +514,21 @@ describe("translatedSubtitlesDownloader", () => {
       expect.objectContaining({
         subtitles: [
           { text: "zh:Hi.", start: 0, end: 500 },
-          { text: `zh:${followUpText}`, start: 500, end: 3500 },
+          {
+            text: "zh:Actually this next cue contains enough words",
+            start: 500,
+            end: 1246,
+          },
+          {
+            text: "zh:that it should remain separate",
+            start: 1246,
+            end: 1758,
+          },
+          {
+            text: "zh:from the short greeting during subtitle optimization across many different transcript timing examples.",
+            start: 1758,
+            end: 3500,
+          },
         ],
       }),
     )
