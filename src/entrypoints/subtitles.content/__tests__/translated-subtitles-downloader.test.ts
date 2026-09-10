@@ -520,13 +520,8 @@ describe("translatedSubtitlesDownloader", () => {
             end: 1246,
           },
           {
-            text: "zh:that it should remain separate",
+            text: "zh:that it should remain separate from the short greeting during subtitle optimization across many different transcript timing examples.",
             start: 1246,
-            end: 1758,
-          },
-          {
-            text: "zh:from the short greeting during subtitle optimization across many different transcript timing examples.",
-            start: 1758,
             end: 3500,
           },
         ],

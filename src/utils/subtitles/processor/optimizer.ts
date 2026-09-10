@@ -63,6 +63,11 @@ export const CONJUNCTION_WORDS = [
   "where",
   "when",
   "while",
+  "who",
+  "whom",
+  "whose",
+  "how",
+  "why",
   "because",
   "although",
   "though",
@@ -85,9 +90,9 @@ export const CONJUNCTION_WORDS = [
 ]
 
 /**
- * Secondary prepositions used when no primary conjunction is present.
+ * @deprecated Prepositions are excluded from split candidates to avoid breaking phrasal verbs and infinitives.
  */
-export const PREPOSITIONS = ["with", "without", "about", "into", "through", "from", "for", "to"]
+export const PREPOSITIONS: string[] = []
 
 // Backward compatibility alias for tests
 export const CONJUNCTION_PATTERNS = [...CONJUNCTION_PHRASES, ...CONJUNCTION_WORDS]
@@ -267,15 +272,6 @@ function findSplitCandidates(text: string): SplitCandidate[] {
       candidates.push({
         splitCharIndex: wordStart,
         priority: 85,
-      })
-      continue
-    }
-
-    // Tier 3: Prepositions
-    if (PREPOSITIONS.includes(cleanWord)) {
-      candidates.push({
-        splitCharIndex: wordStart,
-        priority: 70,
       })
       continue
     }
