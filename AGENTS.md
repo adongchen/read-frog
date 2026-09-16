@@ -27,7 +27,7 @@ To ensure zero/minimal merge conflicts when syncing upstream updates:
 ## Testing & Quality Gates
 
 - `src/utils/host/translate/api/__tests__/free-api.test.ts` depends on live external translation services.
-- When running tests locally as an AI agent, set `SKIP_FREE_API=true` (e.g., `$env:SKIP_FREE_API="true"; pnpm test`).
+- When running tests locally as an AI agent, set `SKIP_FREE_API=true`.
 - Treat `free-api.test.ts` as intentionally skipped during local validation when `SKIP_FREE_API=true`.
 - Always verify changes with `pnpm type-check` and `pnpm test`.
 
