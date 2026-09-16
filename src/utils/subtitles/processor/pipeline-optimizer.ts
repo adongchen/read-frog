@@ -1,6 +1,8 @@
 import type { SubtitlesFragment, SubtitleWord } from "../types"
-import { PAUSE_TIMEOUT_MS, SENTENCE_TERMINATOR_PATTERN } from "@/utils/constants/subtitles"
+import { PAUSE_TIMEOUT_MS } from "@/utils/constants/subtitles"
 import { getTextLength, isCJKLanguage } from "@/utils/subtitles/utils"
+
+export const SENTENCE_TERMINATOR_PATTERN = /[.。?？！!；;…؟۔]['"”’）)]?$/
 
 const STARTS_WITH_SIGN_PATTERN = /^[[(♪]/
 const LEADING_CHEVRON_PATTERN = /^>>\s*/
@@ -14,8 +16,6 @@ const TARGET_MIN_NON_CJK = 11 // words
 const TARGET_MAX_NON_CJK = 20 // words
 const MAX_SAFE_CHARS_NON_CJK = 100 // character ceiling for single screen line
 const MIN_SUBPART_CHARS = 20 // minimum characters for any subpart
-
-export { SENTENCE_TERMINATOR_PATTERN }
 
 /**
  * Phrases that introduce a new thought/sentence and should NEVER be glued

@@ -1,6 +1,6 @@
 import type { SubtitlesFragment, SubtitleWord } from "../../../types"
 import type { YoutubeTimedText } from "../types"
-import { SENTENCE_TERMINATOR_PATTERN } from "@/utils/constants/subtitles"
+import { SENTENCE_TERMINATOR_PATTERN } from "@/utils/subtitles/processor/pipeline-optimizer"
 import { getMaxLength, getTextLength, isCJKLanguage } from "@/utils/subtitles/utils"
 
 const ESTIMATED_WORD_DURATION_MS = 200
