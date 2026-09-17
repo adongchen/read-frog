@@ -87,6 +87,7 @@ export interface SubtitlesProvidersAdapter {
   requestAiSubtitles: () => Promise<void>
   downloadSourceSubtitles: () => Promise<void>
   downloadTranslatedSubtitles: () => Promise<void>
+  resegmentCurrentSubtitles: () => Promise<void>
 }
 
 export class UniversalVideoAdapter implements SubtitlesProvidersAdapter {
@@ -268,6 +269,24 @@ export class UniversalVideoAdapter implements SubtitlesProvidersAdapter {
   downloadTranslatedSubtitles = async () => {
     this.initializeTranslatedSubtitlesDownloader()
     await this.translatedSubtitlesDownloader!.download()
+  }
+
+  resegmentCurrentSubtitles = async (): Promise<void> => {
+    this.clearSourceProcessedSubtitles()
+    if (this.sourceSubtitles.length > 0) {
+      this.sourceProcessedSubtitles = this.buildSourceProcessedSubtitles(this.sourceSubtitles)
+      this.publishSourceTrack(this.sourceProcessedSubtitles)
+    }
+
+    const scheduler = this.subtitlesScheduler
+    if (!scheduler || !scheduler.isActive()) {
+      return
+    }
+
+    this.clearRuntimeSession()
+    scheduler.reset()
+    scheduler.setState("loading")
+    await this.startTranslation()
   }
 
   private initializeTranslatedSubtitlesDownloader() {

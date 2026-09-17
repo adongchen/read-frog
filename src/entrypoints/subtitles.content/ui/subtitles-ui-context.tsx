@@ -19,6 +19,7 @@ interface SubtitlesUIContextValue {
   seekTo: (seconds: number) => void
   downloadSourceSubtitles: () => Promise<void>
   downloadTranslatedSubtitles: () => Promise<void>
+  resegmentCurrentSubtitles: () => Promise<void>
   controlsConfig?: ControlsConfig
   embedded?: boolean
   openBelow?: boolean
@@ -56,6 +57,7 @@ export function SubtitlesProviders({
       seekTo: adapter.seekTo,
       downloadSourceSubtitles: adapter.downloadSourceSubtitles,
       downloadTranslatedSubtitles: adapter.downloadTranslatedSubtitles,
+      resegmentCurrentSubtitles: adapter.resegmentCurrentSubtitles,
       controlsConfig: adapter.getControlsConfig(),
       embedded: adapter.embedded,
       openBelow,

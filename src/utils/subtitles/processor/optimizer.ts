@@ -1,7 +1,17 @@
 import type { SubtitlesFragment } from "../types"
 import { PAUSE_TIMEOUT_MS, SENTENCE_END_PATTERN } from "@/utils/constants/subtitles"
 import { getMaxLength, getTextLength, isCJKLanguage } from "@/utils/subtitles/utils"
+import { getCustomOptimizerMode, type OptimizerMode } from "./custom-optimizer-mode"
 import { optimizeSubtitles as optimizeSubtitlesV2 } from "./pipeline-optimizer"
+
+export {
+  getCustomOptimizerMode,
+  setCustomOptimizerMode,
+  resetCustomOptimizerModeForTest,
+  getOptimizerModeLabel,
+  getOptimizerModeToast,
+  type OptimizerMode,
+} from "./custom-optimizer-mode"
 
 export {
   buildMacroSentences,
@@ -257,11 +267,17 @@ export function optimizeSubtitlesOriginal(
 
 /**
  * Main subtitle optimization function.
- * Plugs in the custom multi-tiered pipeline optimizer by default.
+ * Dispatches between the custom multi-tiered pipeline optimizer (Enhanced)
+ * and the upstream author's double-pass algorithm (Original).
  */
 export function optimizeSubtitles(
   fragments: SubtitlesFragment[],
   language: string,
+  overrideMode?: OptimizerMode,
 ): SubtitlesFragment[] {
+  const mode = overrideMode ?? getCustomOptimizerMode()
+  if (mode === "original") {
+    return optimizeSubtitlesOriginal(fragments, language)
+  }
   return optimizeSubtitlesV2(fragments, language)
 }

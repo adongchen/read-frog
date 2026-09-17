@@ -2,6 +2,7 @@ import type { ViewId } from "."
 import { VISIBLE_SUBPAGES } from "."
 import { DownloadSourceSubtitles } from "../components/download-source-subtitles"
 import { DownloadTranslatedSubtitles } from "../components/download-translated-subtitles"
+import { OptimizerModeToggle } from "../components/optimizer-mode-toggle"
 import { RequestAiSubtitlesItem } from "../components/request-ai-subtitles-item"
 import { SubpageMenuEntry } from "../components/subpage-menu-entry"
 import { SubtitlesSidebarItem } from "../components/subtitles-sidebar-item"
@@ -13,6 +14,7 @@ export function MainMenu({ onNavigate }: { onNavigate: (id: ViewId) => void }) {
       <div className="space-y-1.5">
         <RequestAiSubtitlesItem />
         <SubtitlesToggle />
+        <OptimizerModeToggle />
         <DownloadTranslatedSubtitles />
         <DownloadSourceSubtitles />
         <SubtitlesSidebarItem />
