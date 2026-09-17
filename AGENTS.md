@@ -36,3 +36,17 @@ To ensure zero/minimal merge conflicts when syncing upstream updates:
 - Commit messages must follow conventional commit format: `feat(...)`, `fix(...)`, `refactor(...)`, `chore(...)`. Avoid tool-specific prefixes like `[codex]`.
 - User-facing fixes and features intended for release must include a `.changeset/*.md` file for `@read-frog/extension`.
 - To contribute bug fixes upstream: branch from pure `main` (or `git cherry-pick` the isolated fix commit from `custom`), verify against clean upstream, and submit a PR to `mengxi-ream/read-frog`.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues via `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context (`CONTEXT.md` at root, ADRs in `docs/adr/`). See `docs/agents/domain.md`.
