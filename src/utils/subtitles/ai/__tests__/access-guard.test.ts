@@ -189,4 +189,19 @@ describe("ai subtitles access guard", () => {
     await expect(ensureSignedIn()).resolves.toBe(true)
     expect(showAiSubtitlesWallToast).not.toHaveBeenCalled()
   })
+
+  it("bypasses official login and entitlement checks when Gladia is configured", async () => {
+    const { resetGladiaConfigForTest } = await import("../gladia/config")
+    resetGladiaConfigForTest({
+      apiKey: "custom-gladia-key",
+      endpoint: "https://api.gladia.io",
+      enabled: true,
+    })
+
+    await expect(ensureAiSubtitlesAccess()).resolves.toBe(true)
+    expect(getSession).not.toHaveBeenCalled()
+    expect(getUsage).not.toHaveBeenCalled()
+
+    resetGladiaConfigForTest()
+  })
 })

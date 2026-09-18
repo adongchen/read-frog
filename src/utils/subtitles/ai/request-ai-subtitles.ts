@@ -7,6 +7,7 @@ import { isORPCPublicAppError } from "@/utils/notebase/errors"
 import { orpcClient } from "@/utils/orpc/client"
 import { OverlaySubtitlesError, ToastSubtitlesError } from "@/utils/subtitles/errors"
 import { billingAction, upgradeAction } from "./entitlement"
+import { isGladiaConfigured, requestGladiaSubtitles } from "./gladia"
 
 export interface AiSubtitlesContext {
   videoId: string
@@ -128,7 +129,12 @@ export async function requestAiSubtitles(
   ctx: AiSubtitlesContext,
   opts?: { signal?: AbortSignal },
 ): Promise<{ segments: SubtitlesFragment[]; detectedLanguage: string }> {
+  if (isGladiaConfigured()) {
+    return requestGladiaSubtitles(ctx, opts)
+  }
+
   const { url, durationSec } = ctx
+
   const signal = opts?.signal
 
   throwIfAborted(signal)

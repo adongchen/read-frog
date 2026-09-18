@@ -3,6 +3,7 @@ import { PageLayout } from "../../components/page-layout"
 import { AiQuotaSection } from "./ai-quota"
 import { CacheSection } from "./cache"
 import { CustomPromptsSection } from "./custom-prompts"
+import { GladiaConfigSection } from "./gladia-config"
 import { PreferenceSection } from "./preference"
 import { SubtitlesQueueSection } from "./subtitles-queue"
 import { SubtitlesStyleSection } from "./subtitles-style"
@@ -16,6 +17,7 @@ export function VideoSubtitlesPage() {
     >
       <PreferenceSection />
       <AiQuotaSection />
+      <GladiaConfigSection />
       <SubtitlesStyleSection />
       <CustomPromptsSection />
       <SubtitlesQueueSection />

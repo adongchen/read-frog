@@ -4,6 +4,7 @@ import { isORPCForbiddenError, isORPCUnauthorizedError } from "@/utils/notebase/
 import { orpcClient } from "@/utils/orpc/client"
 import { showAiSubtitlesWallToast } from "@/utils/subtitles/toast"
 import { formatQuotaDate, logInAction, quotaResetAt, upgradeAction } from "./entitlement"
+import { isGladiaConfigured } from "./gladia"
 
 function promptLogIn(): void {
   showAiSubtitlesWallToast(i18n.t("subtitles.errors.aiLoginRequired"), logInAction())
@@ -82,6 +83,9 @@ export async function ensureAiSubtitlesEntitled(): Promise<boolean> {
 }
 
 export async function ensureAiSubtitlesAccess(): Promise<boolean> {
+  if (isGladiaConfigured()) {
+    return true
+  }
   if (!(await ensureSignedIn())) {
     return false
   }

@@ -155,7 +155,7 @@ export default defineConfig({
                 z.object(
                   createExtensionClientEnvSchema(
                     configEnv.mode === "production",
-                    shouldSkipEnvValidation,
+                    shouldSkipEnvValidation || process.env.WXT_SKIP_ENV_VALIDATION === "true",
                   ),
                 ).parse(resolveExtensionEnv(process.env))
 

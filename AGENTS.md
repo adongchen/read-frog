@@ -30,6 +30,7 @@ To ensure zero/minimal merge conflicts when syncing upstream updates:
 - When running tests locally as an AI agent, set `SKIP_FREE_API=true`.
 - Treat `free-api.test.ts` as intentionally skipped during local validation when `SKIP_FREE_API=true`.
 - Always verify changes with `pnpm type-check` and `pnpm test`.
+- **Delivery**: On completing any feature or fix, run `pnpm build` and reload `.output/chrome-mv3` via `chrome-devtools-mcp` (`install_extension`) for immediate user testing.
 
 ## Commit & PR Conventions
 

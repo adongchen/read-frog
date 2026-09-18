@@ -232,4 +232,28 @@ describe("requestAiSubtitles", () => {
       message: "subtitles.errors.aiRequestFailed",
     })
   })
+
+  it("delegates to requestGladiaSubtitles when Gladia is configured", async () => {
+    const { resetGladiaConfigForTest } = await import("../gladia/config")
+    const gladiaTranscriber = await import("../gladia/transcriber")
+    const mockRequestGladia = vi
+      .spyOn(gladiaTranscriber, "requestGladiaSubtitles")
+      .mockResolvedValueOnce({
+        segments: [{ text: "Gladia result", start: 0, end: 1000 }],
+        detectedLanguage: "en",
+      })
+
+    resetGladiaConfigForTest({
+      apiKey: "test-gladia-key",
+      endpoint: "https://api.gladia.io",
+      enabled: true,
+    })
+
+    const result = await requestAiSubtitles(ctx)
+    expect(result.segments).toEqual([{ text: "Gladia result", start: 0, end: 1000 }])
+    expect(create).not.toHaveBeenCalled()
+
+    resetGladiaConfigForTest()
+    mockRequestGladia.mockRestore()
+  })
 })
