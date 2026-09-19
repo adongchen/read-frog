@@ -31,3 +31,13 @@ _Avoid_: customAsr, thirdPartyTranscription
 **SentenceSegment**:
 A semantic sentence unit returned by Gladia with start and end millisecond timestamps, adapted directly into Read Frog's `SubtitlesFragment` pipeline for downstream optimization and translation.
 _Avoid_: utteranceChunk, audioBlock
+
+### Subtitle Positioning
+
+**ControlsAvoidance**:
+The mechanism where subtitle overlays and control shells dynamically calculate vertical offsets based on host player controls visibility (`.ytp-chrome-bottom`, `ytp-autohide`).
+_Avoid_: dynamicShift, controlsFloat
+
+**StaticPositioning**:
+The decoupled positioning policy where subtitle coordinates ignore host player controls visibility entirely, fixing subtitle coordinates strictly to user-configured percentage offsets.
+_Avoid_: fixedSubtitles, nonMoving

@@ -3,6 +3,7 @@ import { use } from "react"
 import { AnchoredToastProvider } from "@/components/ui/base-ui/toast"
 import { ShadowWrapperContext } from "@/utils/react-shadow-host/create-shadow-host"
 import { subtitlesDisplayAtom, subtitlesShowContentAtom, subtitlesShowStateAtom } from "../atoms"
+import { StaticSubtitleOverlayProvider } from "./custom-subtitles-provider"
 import { StateMessage } from "./state-message"
 import { SubtitlesSettingsPanel } from "./subtitles-settings-panel"
 import { SubtitlesUIContext } from "./subtitles-ui-context"
@@ -26,7 +27,9 @@ export function SubtitlesContainer() {
       <div className="absolute inset-0 z-10 overflow-visible">
         {isVisible && (
           <>
-            <SubtitlesView showContent={showContent} />
+            <StaticSubtitleOverlayProvider>
+              <SubtitlesView showContent={showContent} />
+            </StaticSubtitleOverlayProvider>
             <StateMessage state={showState} message={stateData?.message} />
           </>
         )}
