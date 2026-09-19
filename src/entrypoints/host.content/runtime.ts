@@ -10,6 +10,7 @@ import { areSamePageTranslationOrigin } from "@/utils/url"
 import { bindTranslationHubShortcutKey } from "./bind-translation-hub-shortcut"
 import { setupUrlChangeListener } from "./listen"
 import { mountHostToast } from "./mount-host-toast"
+import { registerProviderCycleToast } from "./provider-cycle-toast"
 import { bindTranslationModeShortcutKey } from "./translation-control/bind-translation-mode-shortcut"
 import { bindTranslationShortcutKey } from "./translation-control/bind-translation-shortcut"
 import { registerNodeTranslationTriggers } from "./translation-control/node-translation"
@@ -24,6 +25,7 @@ export async function bootstrapHostContent(
   const cleanupUrlListener = setupUrlChangeListener()
 
   const removeHostToast = window === window.top ? mountHostToast() : () => {}
+  const cleanupProviderCycleToast = window === window.top ? registerProviderCycleToast() : () => {}
 
   const teardownNodeTranslation = registerNodeTranslationTriggers()
 
@@ -125,6 +127,7 @@ export async function bootstrapHostContent(
 
   ctx.onInvalidated(() => {
     removeHostToast()
+    cleanupProviderCycleToast()
     cleanupUrlListener()
     teardownNodeTranslation()
     cleanupPageTranslationTriggers()

@@ -22,6 +22,7 @@ import type {
 import type { GlossarySnapshot } from "@/utils/glossary/active-matcher"
 import type { MatchedTerm } from "@/utils/glossary/types"
 import type { HostedAiStatus } from "@/utils/hosted-ai/types"
+import type { ProviderCycleFeature } from "@/utils/providers/provider-cycle"
 import type { PromptableProviderRef, SerializableProviderRef } from "@/utils/providers/provider-ref"
 import type { EdgeTTSVoice } from "@/utils/server/edge-tts/types"
 import { defineExtensionMessaging } from "@webext-core/messaging"
@@ -184,6 +185,7 @@ interface ProtocolMap {
   // because content scripts cannot read the session storage that cache lives in.
   // Null means "no verdict" (fetch failed); callers fail open on it.
   getHostedAiStatus: () => Promise<HostedAiStatus | null>
+  showProviderCycleToast: (data: { feature: ProviderCycleFeature; providerName: string }) => void
   // network proxy
   backgroundFetch: (data: ProxyRequest) => Promise<ProxyResponse>
   // cache management

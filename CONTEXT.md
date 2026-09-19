@@ -4,6 +4,24 @@ Downstream personal customization fork of Read Frog, introducing enhanced subtit
 
 ## Language
 
+### Translation Provider Selection
+
+**PageTranslation**:
+The bilingual translation of content in the current webpage. It excludes selection translation, input translation, and Translation Hub.
+_Avoid_: webpage translation when referring to every translation feature available on a webpage
+
+**TranslationProviderConfig**:
+A selectable translation backend configuration with its own identity and connection or model settings. Multiple configurations may use the same provider type while remaining distinct choices.
+_Avoid_: vendor, model, translation service
+
+**FeatureProviderSelection**:
+The globally selected translation provider configuration for one translation feature. Page translation and video subtitle translation have independent selections, and changing either selection has the same runtime meaning regardless of whether it originates from the Popup or a shortcut.
+_Avoid_: global provider, active vendor
+
+**ProviderCycle**:
+The ordered, wrapping traversal of the translation provider configurations shown in a feature's Popup selector. The current item keeps its position even when disabled, while traversal skips disabled items as destinations; cycling changes the feature's global provider selection even when the feature is not currently running and does not maintain a separate shortcut-only list.
+_Avoid_: provider playlist, shortcut provider list
+
 ### Subtitle Segmentation
 
 **OptimizerMode**:

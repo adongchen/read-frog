@@ -91,8 +91,12 @@ function fetchAndCache(): Promise<HostedAiStatus | null> {
   return inflight
 }
 
+export async function getHostedAiStatus(): Promise<HostedAiStatus | null> {
+  return (await readCachedStatus()) ?? (await fetchAndCache())
+}
+
 export function setupHostedAiStatusHandler(): void {
   onMessage("getHostedAiStatus", async () => {
-    return (await readCachedStatus()) ?? (await fetchAndCache())
+    return await getHostedAiStatus()
   })
 }

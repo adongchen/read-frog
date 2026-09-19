@@ -33,6 +33,7 @@ import { initMockData } from "./mock-data"
 import { newUserGuide } from "./new-user-guide"
 import { setupNotebasePendingSaveProcessor } from "./notebase-pending-save"
 import { setupPageTranslationHandlers } from "./page-translation"
+import { setupProviderCycleShortcuts } from "./provider-cycle-shortcuts"
 import { proxyFetch } from "./proxy-fetch"
 import { setupSidePanelMessageHandler } from "./side-panel"
 import { setupSubtitlesTranslationHandlers } from "./subtitles-translation"
@@ -150,6 +151,7 @@ export default defineBackground({
 
     proxyFetch()
     setupHostedAiStatusHandler()
+    setupProviderCycleShortcuts()
     setupGlossaryMessageHandlers()
     setupNotebasePendingSaveProcessor(() => backgroundReady)
     setupEdgeTTSMessageHandlers()

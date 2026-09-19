@@ -8,6 +8,7 @@ import {
   isLocalPackagesEnabled,
   resolveExtensionEnv,
 } from "./src/env/shared"
+import { PROVIDER_CYCLE_COMMANDS } from "./src/utils/providers/provider-cycle-commands"
 
 const WXT_API_KEY_PATTERN = /^WXT_.*API_KEY/
 const ALLOWED_BUNDLED_API_KEYS = new Set(["WXT_POSTHOG_API_KEY"])
@@ -59,6 +60,12 @@ export default defineConfig({
       "webNavigation",
       ...(browser !== "firefox" ? ["offscreen", "sidePanel"] : []),
     ],
+    commands: Object.fromEntries(
+      Object.entries(PROVIDER_CYCLE_COMMANDS).map(([name, command]) => [
+        name,
+        { description: command.description },
+      ]),
+    ),
     host_permissions: [
       "*://*/*", // Required for scripting.executeScript in any frame
     ],
