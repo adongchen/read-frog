@@ -30,12 +30,13 @@ import { SelectionPopover } from "@/components/ui/selection-popover"
 import { ANALYTICS_FEATURE, ANALYTICS_SURFACE } from "@/types/analytics"
 import { isLLMProviderConfig, isTranslateProviderConfig } from "@/types/config/provider"
 import { createFeatureUsageContext, trackFeatureUsed } from "@/utils/analytics"
-import { classifyResolvedProvider } from "@/utils/analytics-provider"
+import { classifyProviderConfig, classifyResolvedProvider } from "@/utils/analytics-provider"
 import { configFieldsAtomMap, writeConfigAtom } from "@/utils/atoms/config"
 import { buildFeatureProviderPatch } from "@/utils/constants/feature-providers"
 import { streamBackgroundText } from "@/utils/content-script/background-stream-client"
 import { getRandomUUID } from "@/utils/crypto-polyfill"
 import { resolveGlossaryTermsFromCache } from "@/utils/glossary/active-matcher"
+import { trackGlossaryUsed } from "@/utils/glossary/analytics"
 import { prepareTranslationText } from "@/utils/host/translate/text-preparation"
 import { translateTextCore } from "@/utils/host/translate/translate-text"
 import { getOrCreateWebPageContext } from "@/utils/host/translate/webpage-context"
@@ -160,6 +161,12 @@ async function translateWithTextStream({
     translateRequest.glossaryEnabled,
     translateRequest.language.targetCode,
   )
+  trackGlossaryUsed(
+    "selectionTranslation",
+    glossaryTerms,
+    translateRequest.language.targetCode,
+    classifyProviderConfig(providerConfig),
+  )
 
   const { systemPrompt, prompt } = getTranslatePromptFromConfig(
     { customPromptsConfig: translateRequest.customPromptsConfig },
@@ -234,6 +241,12 @@ async function translateWithHostedTextStream({
     preparedText,
     translateRequest.glossaryEnabled,
     translateRequest.language.targetCode,
+  )
+  trackGlossaryUsed(
+    "selectionTranslation",
+    glossaryTerms,
+    translateRequest.language.targetCode,
+    classifyResolvedProvider(provider),
   )
   if (abortController.signal.aborted) {
     throw new DOMException("aborted", "AbortError")
@@ -477,6 +490,7 @@ export function SelectionTranslationProvider({ children }: { children: ReactNode
         sourceSurface,
       )
       const providerAnalytics = classifyResolvedProvider(translateRequest.provider)
+      const target_language = translateRequest.language.targetCode
 
       setIsTranslating(true)
       setTranslatedText(undefined)
@@ -492,6 +506,8 @@ export function SelectionTranslationProvider({ children }: { children: ReactNode
         void trackFeatureUsed({
           ...analyticsContext,
           ...providerAnalytics,
+          char_count: preparedText.length,
+          target_language,
           outcome: "failure",
         })
         return
@@ -505,6 +521,8 @@ export function SelectionTranslationProvider({ children }: { children: ReactNode
         void trackFeatureUsed({
           ...analyticsContext,
           ...providerAnalytics,
+          char_count: preparedText.length,
+          target_language,
           outcome: "failure",
         })
         return
@@ -545,6 +563,8 @@ export function SelectionTranslationProvider({ children }: { children: ReactNode
           void trackFeatureUsed({
             ...analyticsContext,
             ...providerAnalytics,
+            char_count: preparedText.length,
+            target_language,
             outcome: "failure",
           })
           return
@@ -591,6 +611,8 @@ export function SelectionTranslationProvider({ children }: { children: ReactNode
         void trackFeatureUsed({
           ...analyticsContext,
           ...providerAnalytics,
+          char_count: preparedText.length,
+          target_language,
           outcome: "success",
         })
       } catch (caughtError) {
@@ -603,6 +625,8 @@ export function SelectionTranslationProvider({ children }: { children: ReactNode
           void trackFeatureUsed({
             ...analyticsContext,
             ...providerAnalytics,
+            char_count: preparedText.length,
+            target_language,
             outcome: "failure",
           })
         }

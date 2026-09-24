@@ -58,11 +58,11 @@ interface ProtocolMap {
   tryToSetEnablePageTranslationByTabId: (data: {
     tabId: number
     enabled: boolean
-    analyticsContext?: FeatureUsageContext
+    analyticsContext?: FeatureUsageContext<"page_translation">
   }) => void
   tryToSetEnablePageTranslationOnContentScript: (data: {
     enabled: boolean
-    analyticsContext?: FeatureUsageContext
+    analyticsContext?: FeatureUsageContext<"page_translation">
   }) => void
   setAndNotifyPageTranslationStateChangedByManager: (data: {
     enabled: boolean
@@ -82,7 +82,7 @@ interface ProtocolMap {
   // ask host to start page translation
   askManagerToTogglePageTranslation: (data: {
     enabled: boolean
-    analyticsContext?: FeatureUsageContext
+    analyticsContext?: FeatureUsageContext<"page_translation">
   }) => void
   openSelectionTranslationFromContextMenu: (data: { selectionText: string }) => void
   openSelectionCustomActionFromContextMenu: (data: {
@@ -191,6 +191,11 @@ interface ProtocolMap {
   // cache management
   clearAllTranslationRelatedCache: () => Promise<void>
   clearAiSegmentationCache: () => Promise<void>
+  // Drops the cached session verdict. Granting a host permission changes no
+  // cookie, so the background's cookie listener never fires — without this the
+  // "signed out" entry cached while the permission was missing would outlive
+  // the grant. Awaiting it before refetching keeps the two ordered.
+  invalidateAuthCache: () => Promise<void>
   // edge tts
   edgeTtsSynthesize: (data: EdgeTTSSynthesizeRequest) => Promise<EdgeTTSSynthesizeWireResponse>
   edgeTtsListVoices: () => Promise<EdgeTTSVoice[]>
